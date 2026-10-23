@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/<your-user>/k8s-notes.git
+    repoURL: git@github.com:SofiiaMyk/playground.git
     targetRevision: main
-    path: k8s
+    path: kubernetes/k8s
   destination:
     server: https://kubernetes.default.svc
     namespace: notes
