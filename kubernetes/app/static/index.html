@@ -1,0 +1,58 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>K8s Notes</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 16px; }
+    form { display: flex; gap: 8px; }
+    input { flex: 1; padding: 8px; }
+    button { padding: 8px 14px; cursor: pointer; }
+    li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+    small { color: #888; }
+  </style>
+</head>
+<body>
+  <h1>K8s Notes</h1>
+  <form id="form">
+    <input id="text" placeholder="Write a note..." required>
+    <button>Add</button>
+  </form>
+  <ul id="list"></ul>
+  <small>Served by pod: <b id="pod">...</b> (refresh to see it change)</small>
+
+  <script>
+    async function load() {
+      const notes = await (await fetch("/notes")).json();
+      const list = document.getElementById("list");
+      list.innerHTML = "";
+      for (const n of notes) {
+        const li = document.createElement("li");
+        const span = document.createElement("span");
+        span.textContent = n.text;
+        const del = document.createElement("button");
+        del.textContent = "✕";
+        del.onclick = async () => { await fetch("/notes/" + n.id, { method: "DELETE" }); load(); };
+        li.append(span, del);
+        list.append(li);
+      }
+      const who = await (await fetch("/whoami")).json();
+      document.getElementById("pod").textContent = who.pod;
+    }
+
+    document.getElementById("form").onsubmit = async (e) => {
+      e.preventDefault();
+      const input = document.getElementById("text");
+      await fetch("/notes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ text: input.value }),
+      });
+      input.value = "";
+      load();
+    };
+
+    load();
+  </script>
+</body>
+</html>

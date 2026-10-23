@@ -1,3 +1,5 @@
+from fastapi.staticfiles import StaticFiles
+
 import os
 import time
 from contextlib import asynccontextmanager
@@ -66,3 +68,13 @@ def list_notes():
     with get_conn() as conn:
         rows = conn.execute("SELECT id, text FROM notes ORDER BY id").fetchall()
     return [{"id": r[0], "text": r[1]} for r in rows]
+
+
+@app.delete("/notes/{note_id}")
+def delete_note(note_id: int):
+    with get_conn() as conn:
+        conn.execute("DELETE FROM notes WHERE id = %s", (note_id,))
+    return {"deleted": note_id}
+
+
+app.mount("/", StaticFiles(directory="static", html=True), name="static")
