@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: notes-api:v1
+          image: notes-api:v2
           ports:
             - containerPort: 8000
           envFrom:
