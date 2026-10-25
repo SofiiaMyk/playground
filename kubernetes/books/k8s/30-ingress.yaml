@@ -1,0 +1,18 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: books
+  namespace: books
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: books.localhost
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: books
+                port:
+                  number: 80

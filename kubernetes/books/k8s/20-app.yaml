@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: books-config
+  namespace: books
+data:
+  DB_HOST: postgres        # the Service name, resolved by cluster DNS
+  DB_NAME: books
+  DB_USER: books
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: books-api
+  namespace: books
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: books-api
+  template:
+    metadata:
+      labels:
+        app: books-api
+    spec:
+      containers:
+        - name: api
+          image: books-api:v1
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: books-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: books-api
+  namespace: books
+spec:
+  selector:
+    app: books-api
+  ports:
+    - port: 80
+      targetPort: 8000

@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>My Books</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 640px; margin: 40px auto; padding: 0 16px; }
+    form { display: grid; gap: 8px; margin-bottom: 24px; }
+    input, textarea { padding: 8px; font: inherit; }
+    button { padding: 8px 14px; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 12px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; gap: 12px; }
+    .author { color: #666; }
+    .review { margin-top: 4px; font-style: italic; color: #444; white-space: pre-wrap; }
+    .empty, small { color: #888; }
+    #error { color: #b00020; }
+  </style>
+</head>
+<body>
+  <h1>My Books</h1>
+
+  <form id="form">
+    <input id="name" placeholder="Title" required maxlength="200">
+    <input id="author" placeholder="Author" required maxlength="200">
+    <textarea id="review" placeholder="Review (optional)" rows="3" maxlength="2000"></textarea>
+    <button>Add book</button>
+    <div id="error"></div>
+  </form>
+
+  <ul id="list"></ul>
+  <small>Served by pod: <b id="pod">...</b></small>
+
+  <script>
+    const $ = (id) => document.getElementById(id);
+
+    async function load() {
+      const res = await fetch("/api/books");
+      const books = await res.json();
+      const list = $("list");
+      list.innerHTML = "";
+
+      if (books.length === 0) {
+        const li = document.createElement("li");
+        li.className = "empty";
+        li.textContent = "No books yet. Add your first one above.";
+        list.append(li);
+      }
+
+      for (const b of books) {
+        const li = document.createElement("li");
+        const info = document.createElement("div");
+
+        const title = document.createElement("strong");
+        title.textContent = b.name;
+        const author = document.createElement("span");
+        author.className = "author";
+        author.textContent = " by " + b.author;
+        info.append(title, author);
+
+        if (b.review) {
+          const review = document.createElement("div");
+          review.className = "review";
+          review.textContent = b.review;
+          info.append(review);
+        }
+
+        const del = document.createElement("button");
+        del.textContent = "Remove";
+        del.onclick = async () => {
+          await fetch("/api/books/" + b.id, { method: "DELETE" });
+          load();
+        };
+
+        li.append(info, del);
+        list.append(li);
+      }
+
+      const who = await (await fetch("/api/whoami")).json();
+      $("pod").textContent = who.pod;
+    }
+
+    $("form").onsubmit = async (e) => {
+      e.preventDefault();
+      $("error").textContent = "";
+      const res = await fetch("/api/books", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: $("name").value,
+          author: $("author").value,
+          review: $("review").value || null,
+        }),
+      });
+      if (!res.ok) {
+        $("error").textContent = "Could not add the book (" + res.status + ")";
+        return;
+      }
+      e.target.reset();
+      load();
+    };
+
+    load();
+  </script>
+</body>
+</html>
