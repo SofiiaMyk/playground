@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: books-api:v1
+          image: books:v1
           ports:
             - containerPort: 8000
           envFrom:
