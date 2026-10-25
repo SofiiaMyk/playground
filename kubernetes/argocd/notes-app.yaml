@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: git@github.com:SofiiaMyk/playground.git
     targetRevision: main
-    path: kubernetes/k8s
+    path: kubernetes/notes/k8s
   destination:
     server: https://kubernetes.default.svc
     namespace: notes
